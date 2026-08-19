@@ -19,6 +19,8 @@ You also need the **Feed · Reputation** API active on your account.
 Requires Node 20 or newer. No dependencies to install.
 
 ```bash
+git clone https://github.com/Veetal-Connect/recipes.git
+cd recipes/import-hotel-reputation
 cp .env.example .env      # put your VEETAL_API_KEY in it
 node --env-file=.env index.mjs --list
 node --env-file=.env index.mjs <accommodation-slug>

@@ -1,8 +1,8 @@
 # Veetal Connect API — recipes
 
 Runnable travel apps built on [Veetal Connect API](https://connect-api.veetal.app)
-data. Each folder under `recipes/` is one self-contained recipe: clone the repo, put
-your API key in the recipe's `.env`, run it.
+data. Each top-level folder is one self-contained recipe: clone the repo, put your
+API key in the recipe's `.env`, run it.
 
 Every recipe here has a page on the site with the walkthrough, the API call and the
 FAQ: <https://connect-api.veetal.app/recipes>
@@ -11,7 +11,7 @@ FAQ: <https://connect-api.veetal.app/recipes>
 
 | Recipe | What it does | Dataset |
 | --- | --- | --- |
-| [`import-hotel-reputation`](recipes/import-hotel-reputation) | Multi-OTA reputation report for a hotel — score, reviews and category breakdown, as a table, CSV and HTML | Feed · Reputation |
+| [`import-hotel-reputation`](import-hotel-reputation) | Multi-OTA reputation report for a hotel — score, reviews and category breakdown, as a table, CSV and HTML | Feed · Reputation |
 
 ## Getting a key
 
