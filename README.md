@@ -30,6 +30,11 @@ Recipes are meant to be read, so they stay deliberately small:
 - **`.env.example` in every recipe**, with the variables it reads and nothing else.
 - **Fail with a sentence, not a stack trace.** A 401 means the key, a 404 means the
   slug, a 5xx means the API — say which.
+- **Nothing secret, ever.** This repo is public and its history cannot be cleaned.
+  `node check.mjs` blocks keys, customer data, internal hosts and oversized files;
+  wire it as a pre-commit hook with `git config core.hooksPath .githooks`.
+
+Writing a recipe with an agent? Point it at [AGENTS.md](AGENTS.md).
 
 ## Licence
 

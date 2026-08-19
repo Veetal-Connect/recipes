@@ -1,0 +1,4 @@
+#!/bin/sh
+# El repo es público: no dejes que una credencial llegue al historial.
+# Activar con:  git config core.hooksPath .githooks
+exec node "$(git rev-parse --show-toplevel)/check.mjs" --staged
