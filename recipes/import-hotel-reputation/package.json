@@ -1,0 +1,12 @@
+{
+  "name": "@veetal-recipes/import-hotel-reputation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-OTA hotel reputation report from the Veetal Connect API",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "list": "node --env-file=.env index.mjs --list"
+  }
+}
