@@ -105,7 +105,17 @@ try {
             ? 'That is the API failing, not your call. Retry in a minute.'
             : '';
     console.error(`${error.message}${hint ? `\n${hint}` : ''}`);
-    if (typeof error.body === 'object') console.error(JSON.stringify(error.body, null, 2));
+    // Si ya sabemos explicar el error, la frase basta: volcar además el JSON de la
+    // API convierte el caso más común —una key mal puesta— en un muro de texto.
+    // Solo cuando NO tenemos explicación enseñamos lo que dijo la API, y aun así
+    // preferimos su mensaje a la respuesta entera.
+    if (!hint) {
+      const detail =
+        error.body && typeof error.body === 'object'
+          ? error.body.message || error.body.error || JSON.stringify(error.body)
+          : String(error.body ?? '').trim().slice(0, 200);
+      if (detail) console.error(detail);
+    }
     process.exitCode = 1;
   } else {
     throw error;
