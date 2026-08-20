@@ -12,6 +12,7 @@ FAQ: <https://connect-api.veetal.app/recipes>
 | Recipe | What it does | Dataset |
 | --- | --- | --- |
 | [`import-hotel-reputation`](import-hotel-reputation) | Multi-OTA reputation report for a hotel — score, reviews and category breakdown, as a table, CSV and HTML | Feed · Reputation |
+| [`google-reviews-widget`](google-reviews-widget) | A hotel's Google reviews rendering on its own website, behind a proxy that keeps the API key server-side | Feed · Reputation |
 
 ## Getting a key
 

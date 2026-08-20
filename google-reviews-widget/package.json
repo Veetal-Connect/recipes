@@ -1,0 +1,15 @@
+{
+  "name": "veetal-google-reviews-widget",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Render a hotel's Google reviews on your own site, behind a proxy that keeps your Veetal API key server-side.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env server.mjs",
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

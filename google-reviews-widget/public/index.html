@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hotel Example — Guest reviews</title>
+    <style>
+      /* Esta página imita el sitio de un hotel, que es el contexto real donde acaba el
+         widget. Tiene su propia tipografía (una serif de display, otra escala, otros
+         colores) precisamente para enseñar que el widget no la hereda ni la pisa: vive
+         en su shadow root y se ve igual caiga donde caiga. */
+      :root {
+        --page: #fbfaf7;
+        --ink: #1c1a2e;
+        --muted: #6b6880;
+        --rule: rgba(28, 26, 46, 0.1);
+        --accent: #7c5cff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #12101f;
+          --ink: #f2f0fa;
+          --muted: #a5a1bb;
+          --rule: rgba(255, 255, 255, 0.14);
+          --accent: #a48cff;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+        margin: 0 0 18px;
+      }
+      /* Serif de display, deliberadamente distinta de la del widget. */
+      h1 {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: clamp(34px, 6vw, 52px);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        font-weight: 400;
+        margin: 0 0 18px;
+      }
+      .lead {
+        font-size: 18px;
+        line-height: 1.65;
+        color: var(--muted);
+        margin: 0 0 40px;
+        max-width: 54ch;
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        padding: 22px 0;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 56px;
+      }
+      .fact__label {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .fact__value { font-size: 17px; font-weight: 600; }
+
+      h2 {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 28px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        margin: 0 0 10px;
+      }
+      .note { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0 0 28px; }
+
+      footer {
+        margin-top: 64px;
+        padding-top: 22px;
+        border-top: 1px solid var(--rule);
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      footer a { color: var(--accent); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <p class="eyebrow">Barcelona · Eixample</p>
+      <h1>Hotel Example</h1>
+      <p class="lead">
+        A quiet nineteenth-century building two streets from Passeig de Gràcia, with
+        forty-one rooms, a courtyard for breakfast and a rooftop that stays open until
+        midnight through the summer.
+      </p>
+
+      <div class="facts">
+        <div class="fact">
+          <div class="fact__label">Rooms</div>
+          <div class="fact__value">41</div>
+        </div>
+        <div class="fact">
+          <div class="fact__label">Check-in</div>
+          <div class="fact__value">15:00</div>
+        </div>
+        <div class="fact">
+          <div class="fact__label">Breakfast</div>
+          <div class="fact__value">Included</div>
+        </div>
+      </div>
+
+      <h2>What our guests say</h2>
+      <p class="note">
+        Straight from Google, refreshed by a scheduled import. The widget below renders
+        in its own shadow root, so this page's styles stay out and its own stay in.
+      </p>
+
+      <div id="reviews"></div>
+
+      <footer>
+        A recipe for the
+        <a href="https://connect-api.veetal.app/recipes/google-reviews-widget">Veetal Connect API</a>.
+        This page is a demo: point the proxy at your own hotel and these become your reviews.
+      </footer>
+    </main>
+
+    <script
+      src="/veetal-reviews-widget.js"
+      data-endpoint="/reviews-widget.json"
+      data-target="#reviews"
+      data-limit="5"
+      data-locale="en"
+      data-theme="auto"
+    ></script>
+  </body>
+</html>
