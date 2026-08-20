@@ -1,0 +1,12 @@
+{
+  "name": "veetal-rate-shopping-like-for-like",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Compare your compset's Booking rates like for like — same board, same cancellation policy — from the Veetal accommodation rates feed.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "test": "node test.mjs"
+  }
+}

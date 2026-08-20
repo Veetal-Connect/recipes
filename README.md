@@ -13,6 +13,7 @@ FAQ: <https://connect-api.veetal.app/recipes>
 | --- | --- | --- |
 | [`import-hotel-reputation`](import-hotel-reputation) | Multi-OTA reputation report for a hotel — score, reviews and category breakdown, as a table, CSV and HTML | Feed · Reputation |
 | [`google-reviews-widget`](google-reviews-widget) | A hotel's Google reviews rendering on its own website, behind a proxy that keeps the API key server-side | Feed · Reputation |
+| [`rate-shopping-like-for-like`](rate-shopping-like-for-like) | Your comp set compared product by product — same board, same cancellation — instead of cheapest-per-hotel | Feed · Accommodation Rates |
 
 ## Getting a key
 
