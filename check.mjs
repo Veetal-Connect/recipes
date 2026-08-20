@@ -99,6 +99,7 @@ for (const file of files) {
 
   // El propio guardián y el AGENTS.md contienen los patrones como documentación.
   const isSelfReferential = file === 'check.mjs' || file === 'AGENTS.md';
+  const isLockfile = /(^|\/)\.?(package-lock\.json|npm-shrinkwrap\.json)$/.test(file);
 
   text.split('\n').forEach((line, i) => {
     if (!isSelfReferential) {
@@ -110,6 +111,11 @@ for (const file of files) {
         }
       }
     }
+
+    // Un lockfile es una lista de URLs del registro por definición: escanearlo
+    // produce decenas de avisos legítimos, y una herramienta que avisa de lo normal
+    // acaba ignorándose entera — justo lo que no puede pasar con esta.
+    if (isLockfile) return;
 
     for (const match of line.matchAll(/https?:\/\/([A-Za-z0-9._-]+)/g)) {
       const host = match[1];
