@@ -3,3 +3,5 @@ node_modules/
 report.csv
 report.html
 .DS_Store
+market.csv
+market.html

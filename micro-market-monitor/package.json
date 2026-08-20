@@ -1,0 +1,12 @@
+{
+  "name": "veetal-micro-market-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Map a micro-market from stored Booking.com location searches and watch it move day by day.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "test": "node test.mjs"
+  }
+}
