@@ -13,6 +13,7 @@ FAQ: <https://connect-api.veetal.app/recipes>
 | --- | --- | --- |
 | [`import-hotel-reputation`](import-hotel-reputation) | Multi-OTA reputation report for a hotel — score, reviews and category breakdown, as a table, CSV and HTML | Feed · Reputation |
 | [`google-reviews-widget`](google-reviews-widget) | A hotel's Google reviews rendering on its own website, behind a proxy that keeps the API key server-side | Feed · Reputation |
+| [`portfolio-monitor`](portfolio-monitor) | ADR per hotel across a portfolio over a window, with the outliers and the comparability drift called out | Feed · Accommodation Rates |
 
 ## Getting a key
 
