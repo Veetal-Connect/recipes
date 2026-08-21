@@ -1,0 +1,12 @@
+{
+  "name": "veetal-portfolio-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One table for a whole hotel portfolio: ADR per property over a date window, on the same basis, with the outliers and the comparability drift called out.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "test": "node test.mjs"
+  }
+}
