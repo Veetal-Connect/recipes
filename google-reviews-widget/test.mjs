@@ -34,7 +34,10 @@ const REVIEWS = {
 };
 
 const REPUTATION = {
-  accommodation: [{ accommodation_name: 'Hotel Example', review_score: 9.2, review_count: 1373 }],
+  accommodation: [
+    { accommodation_name: 'Hotel Example', provider: 'google', review_score: 9.4, review_count: 1200 },
+    { accommodation_name: 'Hotel Example', provider: 'tripadvisor', review_score: 8.6, review_count: 300 },
+  ],
 };
 
 let seenReviewUrl = null;
@@ -93,15 +96,17 @@ check('la fecha ausente sobrevive como null, no como cadena rota', () => {
   assert.equal(payload.reviews[1].date, null);
 });
 
-check('la cabecera trae nombre, nota y número de reseñas', () => {
+check('la cabecera pondera la nota por número de reseñas de cada OTA', () => {
   assert.equal(payload.name, 'Hotel Example');
-  assert.equal(payload.score, 9.2);
-  assert.equal(payload.count, 1373);
+  assert.equal(payload.headline.sources, 2);
+  assert.equal(payload.headline.count, 1500);
+  // (9.4*1200 + 8.6*300) / 1500 = 9.24 — no 9.0, que sería la media sin ponderar
+  assert.equal(Number(payload.headline.score.toFixed(2)), 9.24);
 });
 
-check('include_competitors=false va en la petición', () => {
+check('include_competitors=false va en la petición y no se filtra por OTA', () => {
   assert.ok(seenReviewUrl.includes('include_competitors=false'), seenReviewUrl);
-  assert.ok(seenReviewUrl.includes('provider=google'), seenReviewUrl);
+  assert.ok(!seenReviewUrl.includes('provider='), 'sin provider entran todas las OTAs');
 });
 
 check('originalText aguanta null y cadena vacía', () => {
@@ -135,6 +140,79 @@ check('veetal-reviews-widget.js se sirve y no usa innerHTML', () => {
   assert.ok(!/\.innerHTML\s*=/.test(widgetBody), 'no debe asignar innerHTML');
 });
 
+/* ------------------------------------------------ sentimiento, categorías y tendencia */
+// Las funciones derivadas se prueban aparte, con datos de mentira y sin red: son las
+// que deciden qué flecha ve el huésped, así que su umbral tiene que estar clavado.
+const { sentiment, categories, headline, splitWindows, MIN_SAMPLE } = await import('./insights.mjs');
+
+const day = (offset) => {
+  const d = new Date(Date.now() - offset * 86400000);
+  return d.toISOString().slice(0, 10);
+};
+
+check('el sentimiento reparte por umbrales, no por estrellas redondeadas', () => {
+  const s = sentiment([{ score: 10 }, { score: 9 }, { score: 8 }, { score: 6 }, { score: null }]);
+  assert.equal(s.total, 4); // el score null no cuenta
+  assert.equal(s.positive, 2); // >= 9
+  assert.equal(s.neutral, 1); // 7 - 8.9
+  assert.equal(s.negative, 1); // < 7
+  assert.equal(Number(s.positive_share.toFixed(2)), 0.5);
+});
+
+check('sin ninguna puntuación el sentimiento es null, no un cero engañoso', () => {
+  assert.equal(sentiment([{ score: null }]), null);
+});
+
+check('las reseñas sin fecha quedan fuera de las ventanas', () => {
+  const { current, previous } = splitWindows([{ date: null, score: 10 }, { date: day(3), score: 10 }]);
+  assert.equal(current.length, 1);
+  assert.equal(previous.length, 0);
+});
+
+check('una categoría con muestra suficiente trae su delta', () => {
+  const many = (n, offset, score) =>
+    Array.from({ length: n }, () => ({ date: day(offset), category_score: [{ name: 'rooms', score }] }));
+  const rows = categories([...many(MIN_SAMPLE, 3, 8), ...many(MIN_SAMPLE, 35, 10)]);
+  const rooms = rows.find((r) => r.name === 'rooms');
+  assert.equal(rooms.sample, MIN_SAMPLE);
+  assert.equal(Math.round(rooms.delta), -20); // de 10 a 8
+});
+
+check('una categoría con muestra pobre no inventa una flecha', () => {
+  const rows = categories([
+    { date: day(2), category_score: [{ name: 'cleanliness', score: 8 }] },
+    { date: day(40), category_score: [{ name: 'cleanliness', score: 10 }] },
+  ]);
+  const cleanliness = rows.find((r) => r.name === 'cleanliness');
+  assert.equal(cleanliness.delta, null, 'con 1 contra 1 no hay tendencia que enseñar');
+  assert.equal(cleanliness.score, 8, 'pero la nota del periodo sí se muestra');
+});
+
+check('un movimiento por debajo del 1% no pinta flecha', () => {
+  const many = (n, offset, score) =>
+    Array.from({ length: n }, () => ({ date: day(offset), category_score: [{ name: 'location', score }] }));
+  // 9.97 contra 10: un -0,3% que redondeaba a un "↓0%" sin sentido.
+  const rows = categories([...many(MIN_SAMPLE, 3, 9.97), ...many(MIN_SAMPLE, 35, 10)]);
+  const location = rows.find((r) => r.name === 'location');
+  assert.equal(location.delta, null);
+  assert.ok(location.score > 9.9, 'la nota del periodo se sigue mostrando');
+});
+
+check('las categorías se mezclan entre OTAs distintas', () => {
+  const rows = categories([
+    { date: day(2), category_score: [{ name: 'location', score: 10 }] },
+    { date: day(3), category_score: [{ name: 'value_for_money', score: 7 }] },
+  ]);
+  assert.deepEqual(rows.map((r) => r.name).sort(), ['location', 'value_for_money']);
+});
+
+check('headline sin ninguna OTA utilizable no explota', () => {
+  const h = headline([{ provider: 'google', score: null, count: null }]);
+  assert.equal(h.score, null);
+  assert.equal(h.count, 0);
+});
+
 server.close();
 api.close();
+
 console.log(`\nOK — ${checks} comprobaciones`);
