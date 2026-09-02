@@ -40,7 +40,7 @@ async function listSlugs(apiKey) {
 
 async function report(apiKey, slug) {
   const payload = await getReputation(apiKey, slug);
-  const { rows, skipped } = normalizeReputation(payload);
+  const { rows, skipped, competitors } = normalizeReputation(payload);
 
   if (!rows.length) {
     console.error(`No reputation data for "${slug}".
@@ -60,9 +60,11 @@ Accommodations → Launch new import) and try again in a couple of minutes.`);
   if (importInfo) {
     console.log(`\nFrom import ${importInfo.id ?? '—'}${importInfo.date ? ` · ${importInfo.date}` : ''}`);
   }
-  // Los bloques hermanos (competitors, accommodation…) no son un error, pero
-  // conviene verlos por si la respuesta trae algo que no estamos pintando.
-  if (skipped.length) console.log(`\nOther blocks in the response: ${skipped.join(', ')}`);
+  // Una OTA que el import no pudo leer no es un error de la receta, pero hay que
+  // decirlo: si no, parece que el hotel no está en esa OTA.
+  if (skipped.length) console.log(`\nOTAs the import could not read: ${skipped.join(', ')}`);
+  // El compset viaja en la misma respuesta; este informe solo pinta el hotel.
+  if (competitors) console.log(`Comp set in the response: ${competitors} hotel(s), not rendered here`);
 
   const csvPath = path.join(HERE, 'report.csv');
   const htmlPath = path.join(HERE, 'report.html');
