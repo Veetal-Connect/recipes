@@ -48,9 +48,12 @@ From import Veetal-MANUAL-20260818-120142854-ARP · 2026-08-18
 Wrote report.csv and report.html
 ```
 
-`report.csv` has one row per OTA **per category**, which is the shape a spreadsheet
-pivots without a fight. `report.html` is a self-contained page you can send to
-someone.
+If the accommodation has competitors, each one follows under **Comp set** with the
+same table.
+
+`report.csv` has one row per hotel, OTA **and category**, which is the shape a
+spreadsheet pivots without a fight. `report.html` is a self-contained page you can
+send to someone.
 
 ## The call behind it
 
@@ -72,5 +75,6 @@ is on [developers.veetal.app](https://developers.veetal.app/#tag/Feed-API/GET/fe
 - **An OTA the import could not read** (blocked, error) arrives with a `status` other
   than `processed` and no score. It is listed under "OTAs the import could not read"
   rather than rendered as an empty row.
-- **The comp set is not rendered.** The response includes it; the report only counts
-  how many hotels came along.
+- **The comp set comes along.** Every competitor on the accommodation gets its own
+  table under the hotel, and its own `hotel` value in the CSV, so one run reports the
+  whole set.

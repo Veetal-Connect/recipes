@@ -31,20 +31,25 @@ const csvCell = (value) => {
   return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 };
 
-export function toCsv(rows) {
-  const lines = [['ota', 'score', 'reviews', 'category', 'category_score'].join(',')];
-  for (const row of rows) {
-    if (!row.categories.length) {
-      lines.push([row.ota, row.score ?? '', row.reviews ?? '', '', ''].map(csvCell).join(','));
-      continue;
-    }
-    // Una fila por categoría: así la hoja de cálculo pivota sin pelearse.
-    for (const category of row.categories) {
-      lines.push(
-        [row.ota, row.score ?? '', row.reviews ?? '', category.name, category.score]
-          .map(csvCell)
-          .join(','),
-      );
+/**
+ * @param {Array<{hotel: string, rows: Array}>} sections el hotel primero, luego su compset
+ */
+export function toCsv(sections) {
+  const lines = [['hotel', 'ota', 'score', 'reviews', 'category', 'category_score'].join(',')];
+  for (const { hotel, rows } of sections) {
+    for (const row of rows) {
+      if (!row.categories.length) {
+        lines.push([hotel, row.ota, row.score ?? '', row.reviews ?? '', '', ''].map(csvCell).join(','));
+        continue;
+      }
+      // Una fila por categoría: así la hoja de cálculo pivota sin pelearse.
+      for (const category of row.categories) {
+        lines.push(
+          [hotel, row.ota, row.score ?? '', row.reviews ?? '', category.name, category.score]
+            .map(csvCell)
+            .join(','),
+        );
+      }
     }
   }
   return `${lines.join('\n')}\n`;
@@ -56,17 +61,35 @@ const esc = (s) =>
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 
-export function toHtml({ slug, rows, importInfo, generatedAt }) {
-  const tableRows = rows
-    .map(
-      (r) => `      <tr>
+const htmlTable = (rows) => `  <div class="scroll">
+    <table>
+      <thead><tr><th>OTA</th><th>Score</th><th>Reviews</th><th>Category breakdown</th></tr></thead>
+      <tbody>
+${rows
+  .map(
+    (r) => `      <tr>
         <td class="ota">${esc(r.ota)}</td>
         <td class="num">${esc(fmtScore(r.score))}</td>
         <td class="num">${esc(fmtReviews(r.reviews))}</td>
         <td class="cats">${esc(fmtCategories(r.categories))}</td>
       </tr>`,
-    )
-    .join('\n');
+  )
+  .join('\n')}
+      </tbody>
+    </table>
+  </div>`;
+
+/**
+ * @param {Object} report
+ * @param {Array<{hotel: string, rows: Array}>} report.sections el hotel primero, luego su compset
+ */
+export function toHtml({ slug, sections, importInfo, generatedAt }) {
+  const [own, ...competitors] = sections;
+  const compset = competitors.length
+    ? `  <h2>Comp set</h2>\n${competitors
+        .map((section) => `  <h3>${esc(section.hotel)}</h3>\n${htmlTable(section.rows)}`)
+        .join('\n')}`
+    : '';
 
   const provenance = importInfo
     ? `<p class="meta">Data from import <code>${esc(importInfo.id ?? '—')}</code>${
@@ -94,6 +117,8 @@ export function toHtml({ slug, rows, importInfo, generatedAt }) {
   .ota { font-weight: 700; text-transform: capitalize; }
   .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cats { opacity: 0.75; font-size: 14px; }
+  h2 { font-size: 20px; margin: 36px 0 12px; }
+  h3 { font-size: 16px; margin: 20px 0 8px; }
   code { font-family: ui-monospace, monospace; font-size: 0.9em; }
 </style>
 </head>
@@ -101,14 +126,8 @@ export function toHtml({ slug, rows, importInfo, generatedAt }) {
 <main>
   <h1>${esc(slug)}</h1>
   ${provenance}
-  <div class="scroll">
-    <table>
-      <thead><tr><th>OTA</th><th>Score</th><th>Reviews</th><th>Category breakdown</th></tr></thead>
-      <tbody>
-${tableRows}
-      </tbody>
-    </table>
-  </div>
+${htmlTable(own.rows)}
+${compset}
   <p class="meta">Generated ${esc(generatedAt)} · Veetal Connect API</p>
 </main>
 </body>

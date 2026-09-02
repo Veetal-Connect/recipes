@@ -122,20 +122,26 @@ try {
   assert.match(stdout, /Veetal-MANUAL-20260818-120142854-ARP · 2026-08-18/, 'atribuye el dato a su ejecución, con el día');
   assert.match(stdout, /OTAs the import could not read: expedia \(blocked\)/, 'la OTA bloqueada se dice, no se pinta');
   assert.doesNotMatch(stdout, /^expedia/m, 'la OTA bloqueada no ocupa fila');
-  assert.match(stdout, /Comp set in the response: 1 hotel/, 'el compset se cuenta, no se pinta');
-  assert.doesNotMatch(stdout, /rival-hotel|Rival Hotel/, 'los competidores no se mezclan con el hotel');
+  assert.match(stdout, /Comp set \(1\)[\s\S]*Rival Hotel \(rival-hotel\)/, 'el compset se pinta debajo, por hotel');
+  assert.ok(
+    stdout.indexOf('tripadvisor') < stdout.indexOf('Comp set'),
+    'el hotel va antes que su compset',
+  );
 
-  // 2. El CSV trae una fila por categoría y una sola para la OTA sin desglose.
+  // 2. El CSV trae una fila por categoría, una sola para la OTA sin desglose, y el
+  //    compset con su columna de hotel.
   const csv = await readFile(csvPath, 'utf8');
   const lines = csv.trim().split('\n');
-  assert.equal(lines[0], 'ota,score,reviews,category,category_score');
-  assert.equal(lines.length, 1 + 7 + 1 + 2, 'cabecera + booking(7) + google(1) + tripadvisor(2)');
-  assert.ok(lines.includes('google,9,1373,,'), 'la OTA sin desglose ocupa una fila');
+  assert.equal(lines[0], 'hotel,ota,score,reviews,category,category_score');
+  assert.equal(lines.length, 1 + 7 + 1 + 2 + 1, 'cabecera + booking(7) + google(1) + tripadvisor(2) + rival(1)');
+  assert.ok(lines.includes('avenidapalace,google,9,1373,,'), 'la OTA sin desglose ocupa una fila');
+  assert.ok(lines.includes('rival-hotel,booking,9.3,2346,,'), 'el competidor lleva su propio hotel');
 
-  // 3. El HTML es autocontenido y escapa lo que pinta.
+  // 3. El HTML es autocontenido, pinta el compset y escapa lo que pinta.
   const html = await readFile(htmlPath, 'utf8');
   assert.match(html, /^<!doctype html>/);
   assert.match(html, /Veetal-MANUAL-20260818/);
+  assert.match(html, /<h2>Comp set<\/h2>[\s\S]*<h3>rival-hotel<\/h3>/);
   assert.doesNotMatch(html, /<script/i, 'no inyecta scripts');
 
   // 4. Una key mala se explica, no revienta.

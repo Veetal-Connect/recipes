@@ -30,21 +30,17 @@ const toRow = (entry) => ({
 });
 
 /**
- * @returns {{rows: Array, skipped: string[], competitors: number}} una fila por OTA con
- *   datos legibles, las OTAs que el import no pudo leer (con su estado), y cuántos
- *   hoteles del compset venían en la respuesta.
+ * Lista de entradas por OTA → filas legibles, ordenadas por nota, y las OTAs que el
+ * import no pudo leer (bloqueo, error), con su estado, para decirlas en vez de pintar
+ * una fila vacía.
  */
-export function normalizeReputation(payload) {
+function toRows(entries) {
   const rows = [];
   const skipped = [];
 
-  const entries = Array.isArray(payload?.accommodation) ? payload.accommodation : [];
-
-  for (const entry of entries) {
+  for (const entry of Array.isArray(entries) ? entries : []) {
     if (!entry || typeof entry !== 'object' || !entry.provider) continue;
 
-    // Bloqueo o error en el import: la OTA viene sin nota. Se reporta aparte en vez de
-    // pintarse como una fila vacía.
     if (entry.status && entry.status !== 'processed') {
       skipped.push(`${entry.provider} (${entry.status})`);
       continue;
@@ -54,12 +50,28 @@ export function normalizeReputation(payload) {
   }
 
   rows.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  return { rows, skipped };
+}
 
-  const competitors = Array.isArray(payload?.competitors)
-    ? new Set(payload.competitors.map((entry) => entry?.accommodation_slug).filter(Boolean)).size
-    : 0;
+/**
+ * @returns {{rows: Array, skipped: string[], competitors: Array<{slug: string, name: string|null, rows: Array, skipped: string[]}>}}
+ *   las filas del hotel, sus OTAs no leídas, y un bloque por cada hotel del compset.
+ */
+export function normalizeReputation(payload) {
+  const own = toRows(payload?.accommodation);
 
-  return { rows, skipped, competitors };
+  // El compset llega plano, una entrada por (hotel, OTA): se agrupa por hotel.
+  const bySlug = new Map();
+  for (const entry of Array.isArray(payload?.competitors) ? payload.competitors : []) {
+    const slug = entry?.accommodation_slug;
+    if (!slug) continue;
+    if (!bySlug.has(slug)) bySlug.set(slug, { slug, name: entry.accommodation_name ?? null, entries: [] });
+    bySlug.get(slug).entries.push(entry);
+  }
+
+  const competitors = [...bySlug.values()].map(({ slug, name, entries }) => ({ slug, name, ...toRows(entries) }));
+
+  return { rows: own.rows, skipped: own.skipped, competitors };
 }
 
 /** Metadatos de la ejecución de la que sale el dato. */

@@ -63,13 +63,26 @@ Accommodations → Launch new import) and try again in a couple of minutes.`);
   // Una OTA que el import no pudo leer no es un error de la receta, pero hay que
   // decirlo: si no, parece que el hotel no está en esa OTA.
   if (skipped.length) console.log(`\nOTAs the import could not read: ${skipped.join(', ')}`);
-  // El compset viaja en la misma respuesta; este informe solo pinta el hotel.
-  if (competitors) console.log(`Comp set in the response: ${competitors} hotel(s), not rendered here`);
+
+  // El compset viene en la misma respuesta: un bloque por competidor, debajo del hotel.
+  if (competitors.length) console.log(`\nComp set (${competitors.length})`);
+  for (const competitor of competitors) {
+    console.log(`\n${competitor.name ?? competitor.slug} (${competitor.slug})\n`);
+    console.log(toTable(competitor.rows));
+    if (competitor.skipped.length) {
+      console.log(`\nOTAs the import could not read: ${competitor.skipped.join(', ')}`);
+    }
+  }
+
+  const sections = [
+    { hotel: slug, rows },
+    ...competitors.map((competitor) => ({ hotel: competitor.slug, rows: competitor.rows })),
+  ];
 
   const csvPath = path.join(HERE, 'report.csv');
   const htmlPath = path.join(HERE, 'report.html');
-  await writeFile(csvPath, toCsv(rows));
-  await writeFile(htmlPath, toHtml({ slug, rows, importInfo, generatedAt }));
+  await writeFile(csvPath, toCsv(sections));
+  await writeFile(htmlPath, toHtml({ slug, sections, importInfo, generatedAt }));
   console.log(`\nWrote ${path.relative(process.cwd(), csvPath)} and ${path.relative(process.cwd(), htmlPath)}\n`);
 }
 
