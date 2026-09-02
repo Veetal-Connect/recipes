@@ -40,7 +40,8 @@ google       9      1,373
 tripadvisor  8.8    2,588
 booking      8.7    2,023
 
-booking: location 9.8, staff 9.4, wifi 9.2, comfort 8.9, cleanliness 8.8, …
+booking: location 9.8, staff 9.4, free_wifi 9.2, comfort 8.9, cleanliness 8.8, …
+tripadvisor: location 9.73, cleanliness 9.1
 
 From import Veetal-MANUAL-20260818-120142854-ARP · 2026-08-18
 
@@ -57,13 +58,19 @@ someone.
 GET /v2/feed/accommodation/{accommodation_slug}/reputation
 ```
 
-One request per hotel. The response groups by OTA and also carries a `competitors`
-block (your comp set, empty if you have none) and an `import` block naming the run
-the numbers come from.
+One request per hotel. The response carries one entry per OTA in `accommodation`
+(`provider`, `review_score`, `review_count` and, on the OTAs that score categories,
+`category_score`), the same for your comp set in `competitors` (empty if you have
+none), and an `import` block naming the run the numbers come from. The full contract
+is on [developers.veetal.app](https://developers.veetal.app/#tag/Feed-API/GET/feed/accommodation/{accommodation_slug}/reputation).
 
 ## Notes
 
-`lib/normalize.mjs` flattens the response rather than indexing fixed keys: the OTA
-wrapper has changed shape before, and a given OTA may or may not carry a category
-breakdown. Blocks with no score and no reviews are treated as siblings (`import`,
-`competitors`, …) and reported separately instead of being rendered as an OTA.
+- **Google has no category breakdown.** It counts mentions per topic instead
+  (`topics`), which this report does not render; Google shows up with its score and
+  review count only.
+- **An OTA the import could not read** (blocked, error) arrives with a `status` other
+  than `processed` and no score. It is listed under "OTAs the import could not read"
+  rather than rendered as an empty row.
+- **The comp set is not rendered.** The response includes it; the report only counts
+  how many hotels came along.
