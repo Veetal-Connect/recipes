@@ -91,7 +91,7 @@ async function main() {
       process.exitCode = 1;
       return;
     }
-    const dates = importDates(await listImports(KEY, searchId));
+    const dates = importDates(await listImports(KEY, searchId), searchId);
     if (!dates.length) {
       console.log('No completed imports for that search yet.');
       return;
@@ -106,7 +106,7 @@ async function main() {
 
   // Cada fecha solo se puede leer con el import que la escribió: sin su id, el
   // feed devuelve la última ejecución y cualquier día anterior responde 404.
-  const available = importDates(await listImports(KEY, searchId));
+  const available = importDates(await listImports(KEY, searchId), searchId);
   const idFor = (wanted) => {
     const match = available.find((d) => d.date === wanted);
     if (!match) {

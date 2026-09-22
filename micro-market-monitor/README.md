@@ -33,9 +33,10 @@ It prints a table, and writes `market.csv` and `market.html` next to itself.
 This endpoint has a contract that is easy to get wrong, and both mistakes look
 identical from outside — error `510`, "No data found for the requested date".
 
-**1. The date is not "today".** It is the check-in date the import searched for,
-which for a daily schedule is the day that run executed. You cannot pick a future
-date and expect an answer. Ask for the valid ones with `--dates`.
+**1. The date is not "today".** It is a check-in date the import searched for. An
+import searches several of them, starting on the day it runs — a 7-day import that
+ran on the 17th holds the 17th to the 23rd — and each search lists its own in
+`entities[].dates`. Any other date answers 404. Ask for the valid ones with `--dates`.
 
 **2. Without an `import_id`, only the latest extraction exists.** Every earlier day
 answers 404 even though its import completed and its data is stored. To read

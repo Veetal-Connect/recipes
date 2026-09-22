@@ -52,10 +52,29 @@ const IMPORTS = [
   {
     code: 'feed-booking-location-search',
     imports: [
-      { status: 'completed', scheduledFor: '2026-08-19T13:00:00.000Z', importExecutionIdentifier: 'run-19-13' },
-      { status: 'completed', scheduledFor: '2026-08-18T13:00:00.000Z', importExecutionIdentifier: 'run-18-13' },
-      { status: 'failed', scheduledFor: '2026-08-17T13:00:00.000Z', importExecutionIdentifier: 'run-17-13' },
-      { status: 'completed', scheduledFor: '2026-08-18T07:00:00.000Z', importExecutionIdentifier: 'run-18-07' },
+      {
+        status: 'completed',
+        scheduledFor: '2026-08-19T13:00:00.000Z',
+        importExecutionIdentifier: 'run-19-13',
+        // Un import que buscó dos fechas de entrada, y que lleva otra búsqueda
+        // con las suyas: las de 'xyz' no son de 'abc'.
+        entities: [
+          { id: 'xyz', dates: ['2026-08-19', '2026-08-25'] },
+          { id: 'abc', dates: ['2026-08-19', '2026-08-20'] },
+        ],
+      },
+      {
+        status: 'completed',
+        scheduledFor: '2026-08-18T13:00:00.000Z',
+        importExecutionIdentifier: 'run-18-13',
+        entities: [{ id: 'abc', dates: ['2026-08-18'] }],
+      },
+      { status: 'failed', scheduledFor: '2026-08-17T13:00:00.000Z', importExecutionIdentifier: 'run-17-13', entities: [] },
+      // Anterior al campo `dates`: solo se sabe el día en que corrió.
+      { status: 'completed', scheduledFor: '2026-08-18T07:00:00.000Z', importExecutionIdentifier: 'run-18-07', entities: [{ id: 'abc' }] },
+      { status: 'completed', scheduledFor: '2026-08-16T13:00:00.000Z', importExecutionIdentifier: 'run-16-13', entities: [{ id: 'abc' }] },
+      // Una ejecución de otra búsqueda: no aporta nada a 'abc'.
+      { status: 'completed', scheduledFor: '2026-08-21T13:00:00.000Z', importExecutionIdentifier: 'run-21-xyz', entities: [{ id: 'xyz', dates: ['2026-08-21'] }] },
     ],
   },
 ];
@@ -179,12 +198,31 @@ check('subir puestos da delta positivo', () => {
 });
 
 /* --------------------------------------------------------------------- fechas */
-const dates = importDates(await listImports('k', 'abc'));
+const dates = importDates(await listImports('k', 'abc'), 'abc');
 check('cada fecha viene emparejada con el import que la escribió', () => {
   assert.deepEqual(dates, [
+    { date: '2026-08-20', importId: 'run-19-13' },
     { date: '2026-08-19', importId: 'run-19-13' },
     { date: '2026-08-18', importId: 'run-18-13' },
+    { date: '2026-08-16', importId: 'run-16-13' },
   ]);
+});
+
+check('un import de varios días aporta todas sus fechas, no solo el día que corrió', () => {
+  assert.deepEqual(dates.filter((d) => d.importId === 'run-19-13').map((d) => d.date), ['2026-08-20', '2026-08-19']);
+});
+
+check('solo cuentan las fechas de esta búsqueda, no las de otra del mismo import', () => {
+  assert.equal(dates.some((d) => d.date === '2026-08-25'), false);
+});
+
+check('una ejecución de otra búsqueda no firma ninguna fecha de ésta', () => {
+  assert.equal(dates.some((d) => d.importId === 'run-21-xyz'), false);
+  assert.equal(dates.some((d) => d.date === '2026-08-21'), false);
+});
+
+check('un import sin `dates` (anterior al campo) aporta el día en que corrió', () => {
+  assert.equal(dates.find((d) => d.date === '2026-08-16').importId, 'run-16-13');
 });
 
 check('de dos ejecuciones el mismo día gana la más tardía', () => {

@@ -135,20 +135,37 @@ export function compare(current, previous) {
  * obligatorio para leer cualquier día que no sea el último, así que fecha e id
  * viajan juntos o no sirven de nada.
  *
+* Una ejecución no cubre un solo día: busca varias fechas de entrada a partir del
+ * día en que corre, y cada búsqueda trae las suyas en `entities[].dates`. Se lee
+ * la entidad de ESTA búsqueda, porque un mismo import puede llevar varias.
+ *
+ * Los imports anteriores a ese campo no lo traen. Para ellos la única pista es el
+ * día de `scheduledFor`, que es su primera fecha: se muestra esa y no se inventa
+ * el resto.
+ *
  * Si un día tuvo dos ejecuciones (las hay a las 07:00 y a las 13:00), gana la
  * última: es la foto más fresca de ese mercado.
  */
-export function importDates(imports) {
+export function importDates(imports, searchId) {
   const service = (imports || []).find((s) => s.code === 'feed-booking-location-search');
   const runs = (service && service.imports) || [];
 
   const byDate = new Map();
   for (const run of runs) {
     if (run.status !== 'completed' || !run.scheduledFor) continue;
-    const date = String(run.scheduledFor).slice(0, 10);
-    const previous = byDate.get(date);
-    if (!previous || String(run.scheduledFor) > previous.scheduledFor) {
-      byDate.set(date, { date, importId: run.importExecutionIdentifier, scheduledFor: String(run.scheduledFor) });
+    const scheduledFor = String(run.scheduledFor);
+    const entities = run.entities || [];
+    const entity = entities.find((e) => e.id === searchId);
+    // Una ejecución que no llevaba esta búsqueda no aporta ninguna fecha suya.
+    // Sin esto, un import de otra ciudad acabaría firmando el día en que corrió.
+    if (!entity && entities.length) continue;
+    const dates = entity && Array.isArray(entity.dates) ? entity.dates : [scheduledFor.slice(0, 10)];
+
+    for (const date of dates) {
+      const previous = byDate.get(date);
+      if (!previous || scheduledFor > previous.scheduledFor) {
+        byDate.set(date, { date, importId: run.importExecutionIdentifier, scheduledFor });
+      }
     }
   }
 
